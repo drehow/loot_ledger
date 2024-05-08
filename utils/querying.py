@@ -1,8 +1,26 @@
 import streamlit as st
+from streamlit import session_state as ss
+
 import pandas as pd
+import os
+import dotenv
+import psycopg2
 
 def set_conn():
-    return st.connection("snowflake")
+
+    if ss['local_test']:
+        dotenv.load_dotenv(override=True)
+        params = {
+            'dbname': os.environ.get('dbname'),
+            'user': os.environ.get('user'),
+            'password': os.environ.get('password'),
+            'host': os.environ.get('host'),
+        }
+        conn = psycopg2.connect(**params)
+    else:
+        conn = st.connection("snowflake")
+
+    return conn
 
 def set_query_params(query_name, args = None):
     
