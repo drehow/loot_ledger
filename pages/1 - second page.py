@@ -12,3 +12,4 @@ st.subheader(page_name)
 st.markdown('---')
 
 st.table(ss.accounts)
+
