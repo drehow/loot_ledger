@@ -52,6 +52,7 @@ def set_query_params(query_name, args = None):
 def query(name, args = {}):
     conn = set_conn()
     query, params = set_query_params(name, args)
+
     cursor = conn.cursor()
     cursor.execute(query, params)
     columns = [column[0] for column in cursor.description]

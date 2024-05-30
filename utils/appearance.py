@@ -13,11 +13,14 @@ def page_config(title):
     )
 
 def css():
-    # st.markdown("""
-    # <style>
-
-    # </style>
-    # """, unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+        .{table_id} thead th {{
+            background-color: #4CAF50; /* Change this to your desired color */
+            color: white;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
     return
 
 if 'sidebar_state' not in st.session_state:
@@ -37,7 +40,25 @@ def prettyMetric(text, value, color = '#000000'):
     #     ColourWidgetText(text, color) 
     #     ColourWidgetText(f"{round(value,0):,}", color) 
 
-def stlye_mat_table(df):
+def table_css(table_id='custom_table'):
+    return f"""
+<style>
+    .{table_id} {{
+        width: 100%;
+    }}
+    .{table_id} thead th {{
+        background-color: #4CAF50; /* Change this to your desired color */
+        color: white;
+    }}
+    .{table_id} tbody tr:nth-child(even) {{
+        background-color: #000000; /* Optional: style alternating row colors */
+    }}
+    .{table_id} tbody tr:nth-child(odd) {{
+        background-color: #000000; /* Optional: style alternating row colors */
+    }}
+</style>
+"""
+def style_mat_table(df):
     sdf = df.copy()
     highlight_mask = sdf['FROM_DB'] == False
     sdf['AMOUNT'] = sdf['AMOUNT'].apply(lambda x: f"({round(abs(x),0):,})" if x < 0 else f"{round(x,0):,}")
@@ -46,6 +67,12 @@ def stlye_mat_table(df):
     sdf = sdf.style.set_properties(subset=['AMOUNT'], **{'text-align': 'right'})
 
     # highlight rows where FROM_DB is False
-    sdf = sdf.apply(lambda x, mask: ['background-color: #657d8a' if mask.loc[x.name] else '' for _ in x], axis=1, mask=highlight_mask)
+    sdf = sdf.apply(lambda x: ['background-color: #657d8a' if highlight_mask[x.name] else '' for _ in x], axis=1)
 
-    return sdf
+    # Convert styled DataFrame to HTML and manually add the class
+    df_html = sdf.hide(axis='index').to_html().replace('<table', '<table class="custom_table"')
+
+    # Render the styled HTML in Streamlit with the custom CSS
+    return st.markdown(table_css('custom_table') + df_html, unsafe_allow_html=True)
+
+

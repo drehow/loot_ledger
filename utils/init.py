@@ -10,7 +10,7 @@ def init(page):
 
 
 ####################################
-    ss['local_test'] = True
+    ss['local_test'] = False
 ####################################
 
 
@@ -30,7 +30,7 @@ def init(page):
         ss['account_balances'] = q.query('get_account_balances')
         ss['account_balances'].columns = ss['account_balances'].columns.str.upper()
 
-    if page == 'Home':
+    if page == 'Stage Transactions':
         defaults = {
             'init_description': 'Enter description here',
             'selected_account_index': 0,
