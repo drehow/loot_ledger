@@ -3,3 +3,5 @@ venv
 .streamlit/secrets.toml
 
 utils/__pycache__
+
+db_setup

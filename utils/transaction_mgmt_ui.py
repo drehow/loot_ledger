@@ -1,11 +1,12 @@
 import streamlit as st
 from streamlit import session_state as ss
+import pandas as pd
 
 import utils.transaction_mgmt_server as serv
 
 cb = serv.staging_callbacks()
 
-def single_trans_inputs():
+def single_trans_input():
 
     st.markdown('**Enter a single transaction**')
     
@@ -50,3 +51,7 @@ def single_trans_inputs():
         st.button('Push added transactions to db', 
                   key='commit_transaction_button_home', 
                   use_container_width=True)
+
+def multi_trans_input():
+    df = pd.DataFrame(index=range(100), columns=['Date', 'Description', 'Amount', 'Category', 'Transfer Account'])
+    st.data_editor(df, use_container_width=True)

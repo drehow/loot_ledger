@@ -26,6 +26,25 @@ def css():
             background-color: #4CAF50; 
             color: white;
         }}
+            .streamlit-table thead th {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+        }
+
+        /* Style the table rows */
+        .streamlit-table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .streamlit-table tbody tr:hover {
+            background-color: #ddd;
+        }
+
+        /* Center align text in table cells */
+        .streamlit-table tbody td {
+            text-align: center;
+        }
 
     </style>
     

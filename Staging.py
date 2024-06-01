@@ -21,7 +21,10 @@ st.selectbox('Account', ss.ranked_accounts, ss.selected_account_index, on_change
 t1, t2, t4 = st.tabs(['Single transaction', 'Input a table', 'Delete a transaction'])
 
 with t1:
-    ui.single_trans_inputs()
+    ui.single_trans_input()
+    serv.preview()
+with t2:
+    ui.multi_trans_input()
     serv.preview()
 
 serv.reset_ss_vars()
