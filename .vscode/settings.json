@@ -4,10 +4,11 @@
             "previewLimit": 50,
             "server": "localhost",
             "port": 5432,
+            "askForPassword": true,
             "driver": "PostgreSQL",
-            "name": "pf_conn",
+            "name": "pf_conn2",
             "database": "personal_finances",
-            "username": "drew"
+            "username": "postgres"
         }
     ]
 }

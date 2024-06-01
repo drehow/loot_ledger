@@ -60,7 +60,9 @@ def query(name, args = {}):
     for row in cursor.fetchall():
         results.append(dict(zip(columns, row)))
     table = pd.DataFrame(results)
-    table.columns = table.columns.str.upper()
+
+    if not table.empty:
+        table.columns = table.columns.str.upper()
 
     # guess you don't have to close conn with snowflake
     # conn.close()

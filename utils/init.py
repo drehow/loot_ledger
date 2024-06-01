@@ -8,20 +8,12 @@ import utils.querying as q
 
 def init(page):
 
-
-####################################
-    ss['local_test'] = False
-####################################
-
-
-    if ss['local_test']:
-        st.warning('IN TESTING MODE')
-
     if 'accounts' not in ss:
         ss['accounts'] = q.query('get_accounts')
         ss['accounts'].columns = ss['accounts'].columns.str.upper()
     if 'ranked_accounts' not in ss:
         ss['ranked_accounts'] = ss.accounts.sort_values(['AUTOMATED','RA_SCORE'], ascending=[True, False])['NAME'].reset_index(drop=True)
+        # st.table(ss.ranked_accounts)
 
     if 'categories' not in ss:
         ss['categories'] = q.query('get_categories')
@@ -30,15 +22,20 @@ def init(page):
         ss['account_balances'] = q.query('get_account_balances')
         ss['account_balances'].columns = ss['account_balances'].columns.str.upper()
 
-    if page == 'Stage Transactions':
+    if page == 'Staging':
         defaults = {
             'init_description': 'Enter description here',
+            'write_description': 'Enter description here',
             'selected_account_index': 0,
             'init_category_select_home': 0,
             'init_amount_input_home': 0,
             'init_date_input_home': pd.to_datetime('today').date(),
             'transfer_account_name_home': 0,
             'init_transfer_account_name_home': 0,
+            'chosen_account': ss.ranked_accounts[0],
+            'debit': ss.accounts['ASSET'][0].item() == 1,
+            'new_selection': False,
+            'draft_trans': pd.DataFrame(),
         }
     
     else:
