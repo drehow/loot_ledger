@@ -15,6 +15,7 @@ a.css()
 i.init(page_name)
 cb = serv.staging_callbacks()
 
+
 st.selectbox('Account', ss.ranked_accounts, ss.selected_account_index, on_change=cb['chg_selected_account'], key='account_select_home') 
 
 t1, t2, t4 = st.tabs(['Single transaction', 'Input a table', 'Delete a transaction'])

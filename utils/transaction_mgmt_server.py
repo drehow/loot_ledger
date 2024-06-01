@@ -51,21 +51,15 @@ def mat_summary(chosen_account, date_input_home, mat_stats):
     prev_bal = ss.account_balances[
         (ss.account_balances['NAME'] == chosen_account) &
         (ss.account_balances['DATE'] < date_input_home.replace(day=1))
-        ].sort_values('DATE', ascending=False).iloc[0]
-    if ss.debit:
-        calc_end_bal = prev_bal['BALANCE'] + (
-            mat_stats['inflow'] + 
-            mat_stats['outflow'] + 
-            mat_stats['correction'] + 
-            mat_stats['unknown'] 
-        )
-    else:
-        calc_end_bal = prev_bal['BALANCE'] - (
-            mat_stats['inflow'] + 
-            mat_stats['outflow'] + 
-            mat_stats['correction'] + 
-            mat_stats['unknown'] 
-        )
+        ].sort_values('DATE', ascending=False).iloc[0]['BALANCE']
+    prev_bal = float(prev_bal)
+    calc_end_bal = prev_bal + (
+        mat_stats['inflow'] + 
+        mat_stats['outflow'] + 
+        mat_stats['correction'] + 
+        mat_stats['unknown'] 
+    ) * (1 if ss.debit else -1)
+
     # summary_table = pd.DataFrame({
     #     '_': ['Starting balance', 'Inflow', 'Outflow', 'Corrections', 'Unknown', 'Calculated ending balance'],
     #     'Amount': [prev_bal['BALANCE'], mat_stats['inflow'], mat_stats['outflow'], mat_stats['correction'], mat_stats['unknown'], calc_end_bal]
@@ -73,7 +67,7 @@ def mat_summary(chosen_account, date_input_home, mat_stats):
     # return st.table(summary_table)
     c1,c2,c3,c4,c5,c6 = st.columns(6)
     with c1:
-        st.metric('Starting balance', f"{round(prev_bal['BALANCE'],0):,}")
+        st.metric('Starting balance', f"{round(prev_bal,0):,}")
     with c2:
         a.prettyMetric('Inflow', mat_stats['inflow'], '#1a7f19')
     with c3:
@@ -104,7 +98,31 @@ def preview():
     if not ss.preview_trans.empty:
         a.style_mat_table(ss.preview_trans)
     else:
-        st.warning(f'No saved transactions fround for **{ss.chosen_account}** in **{ss.date_input_home.strftime("%B %Y")}**')
+        st.warning(f'No transactions found for **{ss.chosen_account}** in **{ss.date_input_home.strftime("%B %Y")}**')
+
+def add_to_draft_trans():
+    ss.draft_trans = pd.concat([
+        ss.add_trans,
+        ss.draft_trans
+    ]).reset_index(drop=True)
+    # st.table(ss.draft_trans)
+    ss.edited_mat = True
+    ss.add = True
+
+def check_draft_trans_integrity():
+    if (ss.write_description is None) or (ss.write_description == ''):
+        ss.blank_description_error = True
+        return False
+    if ss.transfer_transaction:
+        if ss.transfer_account_name_home is None:
+            ss.empty_transfer_account = True
+            return False
+        elif ss.transfer_account_name_home == ss.chosen_account:
+            ss.same_accounts_error = True
+            return
+    return True
+        
+
 
 def staging_callbacks():
     def clear_draft_trans():
@@ -129,28 +147,25 @@ def staging_callbacks():
         if not ss.transfer_account_name_home is None:
             ss.init_transfer_account_name_home = int(ss.ranked_accounts[ss.ranked_accounts == ss.transfer_account_name_home].index[0])
 
-    def add_to_draft_trans():
-        ss.draft_trans = pd.concat([
-            ss.add_trans,
-            ss.draft_trans
-        ]).reset_index(drop=True)
-        # st.table(ss.draft_trans)
-        ss.edited_mat = True
-        ss.add = True
-
     def add_temp_transaction_single():
         ss.write_description = ss.init_description
-        if ss.categories['NAME'][ss.init_category_select_home] == 'Transfer':
-            # st.write(f"{ss.init_description} (xfer to {ss.ranked_accounts[ss.init_transfer_account_name_home]})")
-            ss.write_description = f"{ss.write_description} (xfer to {ss.ranked_accounts[ss.init_transfer_account_name_home]})"
-        ss.add_trans = pd.DataFrame({
-            'DESCRIPTION': [ss.write_description],
-            'AMOUNT': [ss.init_amount_input_home],
-            'DATE': [ss.init_date_input_home],
-            'CATEGORY': [ss.categories['NAME'][ss.init_category_select_home]],
-            'FROM_DB': [False],
-        })
-        add_to_draft_trans()
+        good_draft = check_draft_trans_integrity()
+        if good_draft:
+            if ss.transfer_transaction:
+                if ss.init_amount_input_home < 0:
+                    ss.write_description = f"{ss.write_description} (transfer to {ss.ranked_accounts[ss.init_transfer_account_name_home]})"
+                else:
+                    ss.write_description = f"{ss.write_description} (transfer from {ss.ranked_accounts[ss.init_transfer_account_name_home]})"
+                ss.transfer_transaction = False
+            ss.add_trans = pd.DataFrame({
+                'DESCRIPTION': [ss.write_description],
+                'AMOUNT': [ss.init_amount_input_home],
+                'DATE': [ss.init_date_input_home],
+                'CATEGORY': [ss.categories['NAME'][ss.init_category_select_home]],
+                'FROM_DB': [False],
+            })
+            add_to_draft_trans()
+
 
     def clear_top_draft_trans():
         ss.draft_trans = ss.draft_trans.iloc[1:]
@@ -162,10 +177,12 @@ def staging_callbacks():
         'chg_selected_account': chg_selected_account,
         'chg_single_trans_inputs': chg_single_trans_inputs,
         'chg_single_trans_transfer': chg_single_trans_transfer,
-        'add_to_draft_trans': add_to_draft_trans,
         'add_temp_transaction_single': add_temp_transaction_single,
         'clear_top_draft_trans': clear_top_draft_trans
     }
 
 def reset_ss_vars():
     ss.new_selection = False 
+    ss.empty_transfer_account = False
+    ss.same_accounts_error = False
+    ss.blank_description_error = False

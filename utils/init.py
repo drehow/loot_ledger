@@ -24,10 +24,10 @@ def init(page):
 
     if page == 'Staging':
         defaults = {
-            'init_description': 'Enter description here',
-            'write_description': 'Enter description here',
+            'init_description': None,
+            'write_description': None,
             'selected_account_index': 0,
-            'init_category_select_home': 0,
+            'init_category_select_home': ss.categories[ss.categories['NAME']=='Unknown transactions'].index[0].item(),
             'init_amount_input_home': 0,
             'init_date_input_home': pd.to_datetime('today').date(),
             'transfer_account_name_home': 0,
@@ -36,6 +36,10 @@ def init(page):
             'debit': ss.accounts['ASSET'][0].item() == 1,
             'new_selection': False,
             'draft_trans': pd.DataFrame(),
+            'empty_transfer_account': False,
+            'same_accounts_error': False,
+            'blank_description_error': False,
+            'transfer_transaction': False,
         }
     
     else:
