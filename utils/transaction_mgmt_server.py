@@ -52,7 +52,7 @@ def mat_summary(chosen_account, date_input_home, mat_stats):
         (ss.account_balances['NAME'] == chosen_account) &
         (ss.account_balances['DATE'] < date_input_home.replace(day=1))
         ].sort_values('DATE', ascending=False).iloc[0]['BALANCE']
-    prev_bal = float(prev_bal)
+    prev_bal = prev_bal
     calc_end_bal = prev_bal + (
         mat_stats['inflow'] + 
         mat_stats['outflow'] + 
@@ -67,17 +67,17 @@ def mat_summary(chosen_account, date_input_home, mat_stats):
     # return st.table(summary_table)
     c1,c2,c3,c4,c5,c6 = st.columns(6)
     with c1:
-        st.metric('Starting balance', f"{round(prev_bal,0):,}")
+        st.metric('Starting balance', f"{prev_bal:,.0f}")
     with c2:
-        a.prettyMetric('Inflow', mat_stats['inflow'], '#1a7f19')
+        st.metric('Inflow', f'{mat_stats["inflow"]:,.0f}')
     with c3:
-        a.prettyMetric('Outflow', mat_stats['outflow'], '#a61919')
+        st.metric('Outflow', f'{mat_stats["outflow"]:,.0f}')
     with c4:
-        a.prettyMetric('Corrections', mat_stats['correction'], '#8f8550')
+        st.metric('Corrections', f'{mat_stats["correction"]:,.0f}')
     with c5:
-        a.prettyMetric('Unknown', mat_stats['unknown'], '#8f8550')
+        st.metric('Unknown', f'{mat_stats["unknown"]:,.0f}')
     with c6:
-        st.metric('Calculated ending balance', f"{round(calc_end_bal,0):,}")
+        st.metric('Calculated ending balance', f'{calc_end_bal:,.0f}')
 
 def preview():
 
@@ -171,6 +171,9 @@ def staging_callbacks():
         ss.draft_trans = ss.draft_trans.iloc[1:]
         ss.edited_mat = True
         ss.add = True
+
+    # def multi_trans_input_callback():
+        
     
     return {
         'clear_draft_trans': clear_draft_trans,
@@ -178,7 +181,8 @@ def staging_callbacks():
         'chg_single_trans_inputs': chg_single_trans_inputs,
         'chg_single_trans_transfer': chg_single_trans_transfer,
         'add_temp_transaction_single': add_temp_transaction_single,
-        'clear_top_draft_trans': clear_top_draft_trans
+        'clear_top_draft_trans': clear_top_draft_trans,
+        # 'multi_trans_input_callback': multi_trans_input_callback,
     }
 
 def reset_ss_vars():

@@ -62,9 +62,9 @@ def ColourWidgetText(wgt_txt, wch_colour = '#000000'):
     htmlstr = htmlstr.replace('|wgt_txt|', "'" + wgt_txt + "'")
     components.html(f"{htmlstr}", height=0, width=0)
 
-def prettyMetric(text, value, color = '#000000'):
+# def prettyMetric(text, value, color = '#000000'):
     # st.markdown('<div class="centered-metric"><div class="metric-container">', unsafe_allow_html=True)
-    st.metric(text, f"{round(value,0):,}")
+    # st.metric(text, f"{round(value,0):,}")
     # st.markdown('</div></div>', unsafe_allow_html=True)
     
     # if round(value,0) != 0:
@@ -92,7 +92,7 @@ def table_css(table_id='custom_table'):
 def style_mat_table(df):
     sdf = df.copy()
     highlight_mask = sdf['FROM_DB'] == False
-    sdf['AMOUNT'] = sdf['AMOUNT'].apply(lambda x: f"({round(abs(x),0):,})" if x < 0 else f"{round(x,0):,}")
+    sdf['AMOUNT'] = sdf['AMOUNT'].apply(lambda x: f"({round(abs(x),0):,.2f})" if x < 0 else f"{round(x,0):,.2f}")
     sdf['DATE'] = pd.to_datetime(sdf['DATE']).dt.strftime('%Y-%m-%d')
     sdf = sdf[['DATE', 'DESCRIPTION', 'AMOUNT', 'CATEGORY']]
     sdf = sdf.style.set_properties(subset=['AMOUNT'], **{'text-align': 'right'})

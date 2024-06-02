@@ -18,7 +18,7 @@ def single_trans_input():
         st.number_input('Amount', value = ss.init_amount_input_home, on_change=cb['chg_single_trans_inputs'], key='amount_input_home')
     with c2:
         st.selectbox('Category', ss.categories['NAME'], ss.init_category_select_home, on_change=cb['chg_single_trans_inputs'], key='category_select_home')
-        st.date_input('Date', value=ss.init_date_input_home, format="MM/DD/YYYY", on_change=cb['chg_single_trans_inputs'], key='date_input_home')
+        
         
     if ss.category_select_home == 'Transfer':
         ss.transfer_transaction = True
@@ -53,5 +53,32 @@ def single_trans_input():
                   use_container_width=True)
 
 def multi_trans_input():
-    df = pd.DataFrame(index=range(100), columns=['Date', 'Description', 'Amount', 'Category', 'Transfer Account'])
-    st.data_editor(df, use_container_width=True)
+    df = pd.DataFrame(index=range(0), columns=['Date', 'Description', 'Amount', 'Category', 'Transfer Account'])
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
+    st.data_editor(df, 
+                   column_config={
+                        "Date": st.column_config.DateColumn(
+                            "Date",
+                            format="MM/DD/YYYY",
+                            step=1,
+                        ),
+                        "Amount": st.column_config.NumberColumn(
+                            "Amount",
+                            step=0.01,
+                            format="%.2f"
+                        ),
+                        "Category": st.column_config.SelectboxColumn(
+                            "Category",
+                            options=ss.categories['NAME']
+                        ),
+                        "Transfer Account": st.column_config.SelectboxColumn(
+                            "Transfer Account",
+                            options=ss.ranked_accounts
+                        )
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    num_rows="dynamic",
+                    # on_change=cb['mult_trans_input_changes']
+                    )
+    st.markdown('---')

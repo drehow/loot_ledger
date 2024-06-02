@@ -3,8 +3,7 @@ from streamlit import session_state as ss
 import pandas as pd
 
 import utils.querying as q
-
-
+import utils.misc as m
 
 def init(page):
 
@@ -22,14 +21,19 @@ def init(page):
         ss['account_balances'] = q.query('get_account_balances')
         ss['account_balances'].columns = ss['account_balances'].columns.str.upper()
 
+    if 'months_list' not in ss:
+        ss.months_list = m.get_months_list()
+
     if page == 'Staging':
         defaults = {
             'init_description': None,
             'write_description': None,
             'selected_account_index': 0,
+            'init_month_select_home': 0,
             'init_category_select_home': ss.categories[ss.categories['NAME']=='Unknown transactions'].index[0].item(),
             'init_amount_input_home': 0,
             'init_date_input_home': pd.to_datetime('today').date(),
+            'date_input_home': pd.to_datetime('today').date(), # don't love the need for this one and the one above
             'transfer_account_name_home': 0,
             'init_transfer_account_name_home': 0,
             'chosen_account': ss.ranked_accounts[0],
