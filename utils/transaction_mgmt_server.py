@@ -6,10 +6,12 @@ import streamlit as st
 from streamlit import session_state as ss
 
 import pandas as pd
+from datetime import datetime
 
 def get_mat_table(end_date, account):
     start_date = end_date.replace(day=1).strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
+    # st.subheader(f"start_date: {start_date}, end_date: {end_date}, account: {account}")
     args = {
         0: start_date,
         1: end_date,
@@ -20,39 +22,40 @@ def get_mat_table(end_date, account):
     return t1
 
 def calc_month_stats(month_account_trans):
+    # st.subheader('here')
     if month_account_trans.empty:
         stats = {
-            'inflow': 0,
-            'outflow': 0,
-            'correction': 0,
-            'unknown': 0,
+            'inflow': 0.0,
+            'outflow': 0.0,
+            'correction': 0.0,
+            'unknown': 0.0,
         }
+
     else:
         stats = {
-        'inflow': month_account_trans[
+        'inflow': float(month_account_trans[
             (month_account_trans['AMOUNT'] > 0) & 
             ~(month_account_trans['CATEGORY'].isin(['Unknown transactions', 'Correction for Balance']))
-            ]['AMOUNT'].sum(),
-        'outflow': month_account_trans[
+            ]['AMOUNT'].sum()),
+        'outflow': float(month_account_trans[
             (month_account_trans['AMOUNT'] <= 0) & 
             ~(month_account_trans['CATEGORY'].isin(['Unknown transactions', 'Correction for Balance']))
-            ]['AMOUNT'].sum(),
-        'correction': month_account_trans[
+            ]['AMOUNT'].sum()),
+        'correction': float(month_account_trans[
             (month_account_trans['CATEGORY'] == 'Correction for Balance')
-            ]['AMOUNT'].sum(),
-        'unknown': month_account_trans[
+            ]['AMOUNT'].sum()),
+        'unknown': float(month_account_trans[
             (month_account_trans['CATEGORY'] == 'Unknown transactions')
-            ]['AMOUNT'].sum(),
+            ]['AMOUNT'].sum()),
         }
     return stats
 
 # get the most recent account balance before the start_date
 def mat_summary(chosen_account, date_input_home, mat_stats):
-    prev_bal = ss.account_balances[
+    prev_bal = float(ss.account_balances[
         (ss.account_balances['NAME'] == chosen_account) &
         (ss.account_balances['DATE'] < date_input_home.replace(day=1))
-        ].sort_values('DATE', ascending=False).iloc[0]['BALANCE']
-    prev_bal = prev_bal
+        ].sort_values('DATE', ascending=False).iloc[0]['BALANCE'])
     calc_end_bal = prev_bal + (
         mat_stats['inflow'] + 
         mat_stats['outflow'] + 
@@ -94,7 +97,7 @@ def preview():
     mat_stats = calc_month_stats(ss.preview_trans)
     
     mat_summary(ss.chosen_account, ss.date_input_home, mat_stats)
-    st.markdown('---')
+    # st.markdown('---')
     if not ss.preview_trans.empty:
         a.style_mat_table(ss.preview_trans)
     else:
@@ -130,6 +133,13 @@ def staging_callbacks():
         ss.edited_mat = True
         ss.add = True
 
+    def staging_month_select():
+        ss.init_month_select_home = ss.months_list.index(ss.month_select_home)
+        ss.date_input_home = m.eom(datetime.strptime(ss.month_select_home, '%b, %Y').date())
+        ss.init_single_trans_date_input = ss.date_input_home
+        clear_draft_trans()
+        ss.new_selection = True
+
     def chg_selected_account():
         ss.selected_account_index = int(ss.ranked_accounts[ss.ranked_accounts == ss.account_select_home].index[0])
         ss.chosen_account = ss.ranked_accounts[ss.selected_account_index]
@@ -141,7 +151,7 @@ def staging_callbacks():
         ss.init_description = ss['description_input_home']
         ss.init_amount_input_home = ss['amount_input_home']
         ss.init_category_select_home = int(ss.categories[ss.categories['NAME']==ss['category_select_home']].index[0])
-        ss.init_date_input_home = ss['date_input_home']
+        ss.init_single_trans_date_input = ss['single_trans_date_input']
 
     def chg_single_trans_transfer():
         if not ss.transfer_account_name_home is None:
@@ -160,7 +170,7 @@ def staging_callbacks():
             ss.add_trans = pd.DataFrame({
                 'DESCRIPTION': [ss.write_description],
                 'AMOUNT': [ss.init_amount_input_home],
-                'DATE': [ss.init_date_input_home],
+                'DATE': [ss.single_trans_date_input],
                 'CATEGORY': [ss.categories['NAME'][ss.init_category_select_home]],
                 'FROM_DB': [False],
             })
@@ -182,6 +192,7 @@ def staging_callbacks():
         'chg_single_trans_transfer': chg_single_trans_transfer,
         'add_temp_transaction_single': add_temp_transaction_single,
         'clear_top_draft_trans': clear_top_draft_trans,
+        'staging_month_select': staging_month_select,
         # 'multi_trans_input_callback': multi_trans_input_callback,
     }
 
@@ -190,3 +201,5 @@ def reset_ss_vars():
     ss.empty_transfer_account = False
     ss.same_accounts_error = False
     ss.blank_description_error = False
+
+

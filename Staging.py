@@ -15,25 +15,33 @@ import utils.misc as m
 a.page_config(page_name)
 a.css()
 i.init(page_name)
+
+if 'first_run_staging' not in ss:
+    ss.first_run_staging = True
+
 cb = serv.staging_callbacks()
 c1_staging, c2_staging = st.columns(2)
 with c1_staging:
     st.selectbox('Account', ss.ranked_accounts, ss.selected_account_index, on_change=cb['chg_selected_account'], key='account_select_home') 
 
 with c2_staging: 
-    # st.date_input('Date', value=ss.init_date_input_home, format="MM/DD/YYYY", on_change=cb['chg_single_trans_inputs'], key='date_input_home')
-    def staging_month_select():
-        ss.init_month_select_home = ss.months_list.index(ss.month_select_home)
-        ss.date_input_home = m.eom(datetime.strptime(ss.month_select_home, '%b, %Y').date())
-    st.selectbox('Month', ss.months_list, ss.init_month_select_home, key='month_select_home', on_change=staging_month_select)
+    st.selectbox('Month', ss.months_list, ss.init_month_select_home, key='month_select_home', on_change=cb['staging_month_select'])
 
+
+if ss.first_run_staging:
+    ss.first_run_staging = False
+    ss.init_amount_input_home = 0
+    st.rerun()
 t1, t2, t4 = st.tabs(['Single transaction', 'Input a table', 'Delete a transaction'])
 
 with t1:
     ui.single_trans_input()
     serv.preview()
 with t2:
+    st.toggle('test', False)
     ui.multi_trans_input()
     serv.preview()
 
+
 serv.reset_ss_vars()
+

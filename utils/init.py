@@ -31,8 +31,8 @@ def init(page):
             'selected_account_index': 0,
             'init_month_select_home': 0,
             'init_category_select_home': ss.categories[ss.categories['NAME']=='Unknown transactions'].index[0].item(),
-            'init_amount_input_home': 0,
-            'init_date_input_home': pd.to_datetime('today').date(),
+            'init_amount_input_home': 0.01,
+            'init_single_trans_date_input': pd.to_datetime('today').date(),
             'date_input_home': pd.to_datetime('today').date(), # don't love the need for this one and the one above
             'transfer_account_name_home': 0,
             'init_transfer_account_name_home': 0,
