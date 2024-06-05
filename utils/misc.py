@@ -5,6 +5,8 @@ from streamlit import session_state as ss
 
 def eom(date):
     return date.replace(day=pd.Timestamp(date).days_in_month)
+def fom(date):
+    return date.replace(day=1)
 
 def get_months_list():
     current_date = datetime.now()

@@ -104,6 +104,7 @@ def preview():
         st.warning(f'No transactions found for **{ss.chosen_account}** in **{ss.date_input_home.strftime("%B %Y")}**')
 
 def add_to_draft_trans():
+    # st.table(ss.add_trans)
     ss.draft_trans = pd.concat([
         ss.add_trans,
         ss.draft_trans
@@ -112,21 +113,55 @@ def add_to_draft_trans():
     ss.edited_mat = True
     ss.add = True
 
-def check_draft_trans_integrity():
-    if (ss.write_description is None) or (ss.write_description == ''):
-        ss.blank_description_error = True
-        return False
-    if ss.transfer_transaction:
-        if ss.transfer_account_name_home is None:
-            ss.empty_transfer_account = True
+def check_draft_trans_integrity(type = 'single'):
+    if type == 'single':
+        if (ss.write_description is None) or (ss.write_description == ''):
+            ss.blank_description_error = True
             return False
-        elif ss.transfer_account_name_home == ss.chosen_account:
-            ss.same_accounts_error = True
-            return
-    return True
+        if ss.amount_input_home == 0:
+            ss.zero_amount_error = True
+            return False
+        if (ss.single_trans_date_input < m.fom(ss.date_input_home)) or \
+            (ss.single_trans_date_input > m.eom(ss.date_input_home)):
+            ss.date_error = True
+        if ss.transfer_transaction_single:
+            if ss.transfer_account_name_home is None:
+                ss.empty_transfer_account = True
+                return False
+            elif ss.transfer_account_name_home == ss.chosen_account:
+                ss.same_accounts_error = True
+                return False
+        return True
+    if type == 'multi':
+        if any(ss.write_descriptions.isnull()):
+            ss.blank_description_error_multi = True
+            return False
+        if any(ss.write_descriptions == ''):
+            ss.blank_description_error_multi = True
+            return False
+        if any(ss.multi_trans_input['Amount'] == 0):
+            ss.zero_amount_error_multi = True
+            return False
+        if any(ss.multi_trans_input['Date'] < m.fom(ss.date_input_home)) or any(ss.multi_trans_input['Date'] > m.eom(ss.date_input_home)):
+            ss.date_error_multi = True
+            return False
         
-
-
+        # st.write(ss.write_descriptions.values)
+        if len(ss.transfer_transaction_multi) > 0:
+            temp = ss.multi_trans_input[ss.multi_trans_input['Category'] == 'Transfer']
+            if any(temp['Transfer Account'].isnull()):
+                ss.empty_transfer_account_multi = True
+                return False
+            if any(temp['Transfer Account'] == ss.chosen_account):
+                ss.same_accounts_error_multi = True
+                return False
+            temp = ss.multi_trans_input[ss.multi_trans_input['Category'] != 'Transfer']
+            if not temp.empty:
+                if any(temp['Transfer Account'].notnull()):
+                    ss.transfer_account_error = True
+                    return False    
+        return True
+        
 def staging_callbacks():
     def clear_draft_trans():
         ss.draft_trans = pd.DataFrame()
@@ -159,14 +194,14 @@ def staging_callbacks():
 
     def add_temp_transaction_single():
         ss.write_description = ss.init_description
-        good_draft = check_draft_trans_integrity()
+        good_draft = check_draft_trans_integrity('single')
         if good_draft:
-            if ss.transfer_transaction:
+            if ss.transfer_transaction_single:
                 if ss.init_amount_input_home < 0:
                     ss.write_description = f"{ss.write_description} (transfer to {ss.ranked_accounts[ss.init_transfer_account_name_home]})"
                 else:
                     ss.write_description = f"{ss.write_description} (transfer from {ss.ranked_accounts[ss.init_transfer_account_name_home]})"
-                ss.transfer_transaction = False
+                ss.transfer_transaction_single = False
             ss.add_trans = pd.DataFrame({
                 'DESCRIPTION': [ss.write_description],
                 'AMOUNT': [ss.init_amount_input_home],
@@ -176,6 +211,26 @@ def staging_callbacks():
             })
             add_to_draft_trans()
 
+    def add_temp_transaction_multi():
+        
+        ss.write_descriptions = ss.multi_trans_input['Description']
+        good_draft = check_draft_trans_integrity('multi')
+        if good_draft:
+            if len(ss.transfer_transaction_multi) > 0:
+                for i in ss.transfer_transaction_multi:
+                    if ss.multi_trans_input['Amount'][i] < 0:
+                        ss.write_descriptions[i] = f"{ss.write_descriptions[i]} (transfer to {ss.multi_trans_input['Transfer Account'][i]})"
+                    else:
+                        ss.write_descriptions[i] = f"{ss.write_descriptions[i]} (transfer from {ss.multi_trans_input['Transfer Account'][i]})"
+                ss.transfer_transaction_multi = []
+            ss.add_trans = pd.DataFrame({
+                'DESCRIPTION': ss.write_descriptions,
+                'AMOUNT': ss.multi_trans_input['Amount'],
+                'DATE': ss.multi_trans_input['Date'],
+                'CATEGORY': ss.multi_trans_input['Category'],
+                'FROM_DB': [False] * len(ss.write_descriptions),
+            })
+            add_to_draft_trans()
 
     def clear_top_draft_trans():
         ss.draft_trans = ss.draft_trans.iloc[1:]
@@ -193,13 +248,33 @@ def staging_callbacks():
         'add_temp_transaction_single': add_temp_transaction_single,
         'clear_top_draft_trans': clear_top_draft_trans,
         'staging_month_select': staging_month_select,
-        # 'multi_trans_input_callback': multi_trans_input_callback,
+        'add_temp_transaction_multi': add_temp_transaction_multi,
     }
+
+def check_for_errors_multi():
+    if ss.zero_amount_error_multi:
+        st.error('Amounts cannot be zero.')
+    if ss.blank_description_error_multi:
+        st.error('Descriptions cannot be blank.')
+    if ss.date_error_multi:
+        st.error('Dates must be within the selected month.')
+    if ss.empty_transfer_account_multi:
+        st.error('To submit a Transfer, select an account to transfer to/from.')
+    if ss.same_accounts_error_multi:
+        st.error('Cannot transfer to the same account.')
+
 
 def reset_ss_vars():
     ss.new_selection = False 
     ss.empty_transfer_account = False
+    ss.empty_transfer_account_multi = False
     ss.same_accounts_error = False
+    ss.same_accounts_error_multi = False
     ss.blank_description_error = False
+    ss.blank_description_error_multi = False
+    ss.zero_amount_error = False
+    ss.zero_amount_error_multi = False
+    ss.date_error = False
+    ss.date_error_multi = False
 
 

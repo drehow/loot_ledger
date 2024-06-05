@@ -13,7 +13,7 @@ def page_config(title):
     )
     if st.secrets['env']['local_testing']:
         ss['local_test'] = True
-        st.info('IN TESTING MODE')
+        st.info('DEV MODE')
     else:
         ss['local_test'] = False
     st.subheader(title)

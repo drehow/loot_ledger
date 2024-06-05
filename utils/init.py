@@ -25,13 +25,18 @@ def init(page):
         ss.months_list = m.get_months_list()
 
     if page == 'Staging':
+        if 'first_run_staging' not in ss:
+            ss.first_run_staging = 0
+            st.rerun()
+            # workaround for a bug in Streamlit. If the first widget you edit is not on the first tab, it will jump back to first tab
+            
         defaults = {
             'init_description': None,
             'write_description': None,
             'selected_account_index': 0,
             'init_month_select_home': 0,
             'init_category_select_home': ss.categories[ss.categories['NAME']=='Unknown transactions'].index[0].item(),
-            'init_amount_input_home': 0.01,
+            'init_amount_input_home': 0.0,
             'init_single_trans_date_input': pd.to_datetime('today').date(),
             'date_input_home': pd.to_datetime('today').date(), # don't love the need for this one and the one above
             'transfer_account_name_home': 0,
@@ -41,9 +46,17 @@ def init(page):
             'new_selection': False,
             'draft_trans': pd.DataFrame(),
             'empty_transfer_account': False,
+            'empty_transfer_account_multi': False,
             'same_accounts_error': False,
+            'same_accounts_error_multi': False,
             'blank_description_error': False,
-            'transfer_transaction': False,
+            'blank_description_error_multi': False,
+            'zero_amount_error': False,
+            'zero_amount_error_multi': False,
+            'transfer_transaction_single': False,
+            'transfer_transaction_multi': [],
+            'date_error': False,
+            'date_error_multi': False,
         }
     
     else:
