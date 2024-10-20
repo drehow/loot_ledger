@@ -63,7 +63,7 @@ def query(name, args = {}):
 
     if not table.empty:
         table.columns = table.columns.str.upper()
-
+    
     # guess you don't have to close conn with snowflake
     # conn.close()
     return table

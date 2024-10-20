@@ -1,8 +1,8 @@
 venv
-.env
-.streamlit/secrets.toml
 
-utils/__pycache__
+.env
+
+.streamlit/secrets.toml
 
 db_setup/postgres/init_account_balance.sql
 db_setup/postgres/init_transaction.sql
@@ -10,3 +10,5 @@ db_setup/postgres/init_category.sql
 db_setup/postgres/init_account.sql
 
 db_setup/snowflake/init_db.sql
+
+__pycache__

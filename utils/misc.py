@@ -16,3 +16,18 @@ def get_months_list():
         months_list.append(formatted_month)
         current_date -= timedelta(days=current_date.day)
     return months_list
+
+def apply_changes_data_editor(df, changes):
+   
+    if "edited_rows" in changes:
+        for row_index, row_changes in changes["edited_rows"].items():
+            for column, new_value in row_changes.items():
+                df.at[int(row_index), column] = new_value
+    
+    if "added_rows" in changes:
+        added_rows = changes["added_rows"]
+        new_rows = [row_values for row_values in added_rows]
+        new_rows = pd.DataFrame(new_rows)
+        df = pd.concat([df, new_rows]).reset_index(drop=True)
+    
+    return df

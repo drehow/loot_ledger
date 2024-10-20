@@ -31,6 +31,7 @@ def init(page):
             # workaround for a bug in Streamlit. If the first widget you edit is not on the first tab, it will jump back to first tab
             
         defaults = {
+            'account_balance_input': 0.0,
             'init_description': None,
             'write_description': None,
             'selected_account_index': 0,
@@ -43,8 +44,9 @@ def init(page):
             'init_transfer_account_name_home': 0,
             'chosen_account': ss.ranked_accounts[0],
             'debit': ss.accounts['ASSET'][0].item() == 1,
-            'new_selection': False,
             'draft_trans': pd.DataFrame(),
+            'draft_balance': pd.DataFrame(),
+            'refresh_saved_transactions': True,
             'empty_transfer_account': False,
             'empty_transfer_account_multi': False,
             'same_accounts_error': False,
@@ -57,6 +59,10 @@ def init(page):
             'transfer_transaction_multi': [],
             'date_error': False,
             'date_error_multi': False,
+            'blank_category_error_multi': False,
+            'empty_balance_account': False,
+            'date_future_error_account': False,
+            'date_error_account': False,
         }
     
     else:

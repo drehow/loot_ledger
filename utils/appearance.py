@@ -78,28 +78,30 @@ def table_css(table_id='custom_table'):
         width: 100%;
     }}
     .{table_id} thead th {{
-        background-color: #608785; 
-        color: white;
+        background-color: #E9FFF9; 
+        color: black;
     }}
     .{table_id} tbody tr:nth-child(even) {{
         background-color: #d4d4d4; 
+        color: white;
     }}
     .{table_id} tbody tr:nth-child(odd) {{
         background-color: #e0e0e0; 
+        color: white;
     }}
 </style>
 """
 def style_mat_table(df):
     sdf = df.copy()
     highlight_mask = sdf['FROM_DB'] == False
-    sdf['AMOUNT'] = sdf['AMOUNT'].apply(lambda x: f"({round(abs(x),0):,.2f})" if x < 0 else f"{round(x,0):,.2f}")
+    sdf['AMOUNT'] = sdf['AMOUNT'].apply(lambda x: f"({round(abs(x),0):,.0f})" if x < 0 else f"{round(x,0):,.0f}")
     sdf['DATE'] = pd.to_datetime(sdf['DATE']).dt.strftime('%Y-%m-%d')
     sdf = sdf[['DATE', 'DESCRIPTION', 'AMOUNT', 'CATEGORY']]
     sdf = sdf.style.set_properties(subset=['AMOUNT'], **{'text-align': 'right'})
 
     # highlight rows where FROM_DB is False
-    sdf = sdf.apply(lambda x: ['background-color: #f5edcb' if highlight_mask[x.name] and x.name % 2 == 0 else \
-                               'background-color: #e8e1c3' if highlight_mask[x.name] else '' for _ in x], axis=1)
+    sdf = sdf.apply(lambda x: ['background-color: #8F6666' if highlight_mask[x.name] and x.name % 2 == 0 else \
+                               'background-color: #835D5D' if highlight_mask[x.name] else '' for _ in x], axis=1)
 
     # Convert styled DataFrame to HTML and manually add the class
     df_html = sdf.hide(axis='index').to_html().replace('<table', '<table class="custom_table"')
